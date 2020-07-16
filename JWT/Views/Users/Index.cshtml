@@ -1,0 +1,77 @@
+﻿@model JWT.Entities.User
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+
+<h4>User</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <button type="button" id="login">Sign In</button>
+        <button type="button" id="showData">Show Data</button>
+    </div>
+
+    <div id="firstName"></div>
+    <br/>
+    <div id="lastName"></div>
+</div>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
+
+<script>
+    $("#login").click(function () {
+
+        var options = {};
+        options.url = "/users/authenticate";
+        options.type = "POST";
+
+        var obj = {};
+
+        obj.Username = "test";
+        obj.Password = "test";
+         
+        options.data = JSON.stringify(obj);
+        options.contentType = "application/json";
+        options.dataType = "json";
+
+        options.success = function (obj) {
+            sessionStorage.setItem("token", obj.token);
+            $("#response").html("<h2>User successfully logged in.</h2 > ");
+        };
+        options.error = function () {
+            $("#response").html("<h2>Error while calling the Web API!</h2 > ");
+        };
+        $.ajax(options);
+    });
+
+
+    $("#showData").click(function () {
+        var options = {};
+        options.url = "/users/getall";
+        options.type = "GET";
+        options.beforeSend = function (request) {
+            request.setRequestHeader("Authorization",
+                "Bearer " + sessionStorage.getItem("token"));
+        };
+        options.dataType = "json";
+        options.success = function (data) {
+            var myJson =  JSON.stringify(data);
+            console.log(myJson);
+            $("#firstName").html("<h2>" + data.firstName + "</h2>");
+            $("#lastName").html("<h2>" + data.lastName + "</h2>");
+        };
+        options.error = function (a, b, c) {
+            $("#response").html("<h2>Error while calling the Web API!(" + b + " - " + c + ")</h2 > ");
+        };
+        $.ajax(options);
+    });
+</script>
